@@ -64,9 +64,25 @@ Camera::Camera(ros::NodeHandle _comm_nh, ros::NodeHandle _param_nh) :
       /* initialize the cameras */
       uvc_cam::Cam::mode_t mode = uvc_cam::Cam::MODE_RGB;
       if (format == "jpeg") 
-        mode = uvc_cam::Cam::MODE_MJPG;      
-      cam = new uvc_cam::Cam(device.c_str(), mode, width, height, fps);
-      cam->set_motion_thresholds(100, -1);
+        mode = uvc_cam::Cam::MODE_MJPG;  
+      int counter_=1;
+      while(counter_<10){
+        try{
+          cam = new uvc_cam::Cam(device.c_str(), mode, width, height, fps);
+          cam->set_motion_thresholds(100, -1);
+          counter_=1;
+          std::cout << device << std::endl;
+          break;
+        }catch(...){
+          std::string _device = "/dev/video" + std::to_string(counter_);
+          device = _device;
+          counter_++;
+        }
+      }  
+      if(counter_==10)
+        exit(0);  
+      
+      
 
       bool auto_focus;
       if (pnode.getParam("auto_focus", auto_focus)) {
